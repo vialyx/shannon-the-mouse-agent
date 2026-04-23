@@ -1,0 +1,22 @@
+# Rolling time window parameters
+[window]
+duration_ms = 500   # milliseconds per analysis window
+bins = 16           # number of direction bins (22.5° each)
+
+# Risk score weighting: risk = alpha * H_norm + beta * norm(σ_v)
+[scoring]
+alpha = 0.6
+beta  = 0.4
+
+# Telemetry emission
+[emit]
+stdout = true
+http_endpoint    = ""    # optional: "https://your-endpoint/risk"
+http_interval_ms = 1000  # batch-flush interval in milliseconds
+
+# Risk level thresholds (inclusive lower bound)
+[thresholds]
+medium   = 0.3   # 0.0–0.3  LOW    – natural human movement
+high     = 0.6   # 0.3–0.6  MEDIUM – unusual patterns / elevated jitter
+critical = 0.8   # 0.6–0.8  HIGH   – robotic / scripted movement
+                 # 0.8–1.0  CRITICAL – near-certain automation or attack
