@@ -102,8 +102,7 @@ fn std_dev(values: &[f64]) -> f64 {
         return 0.0;
     }
     let mean = values.iter().sum::<f64>() / values.len() as f64;
-    let variance =
-        values.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / values.len() as f64;
+    let variance = values.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / values.len() as f64;
     variance.sqrt()
 }
 
@@ -113,7 +112,11 @@ mod tests {
     use crate::buffer::MouseSample;
 
     fn sample(x: f64, y: f64, t: u64) -> MouseSample {
-        MouseSample { x, y, timestamp_ms: t }
+        MouseSample {
+            x,
+            y,
+            timestamp_ms: t,
+        }
     }
 
     fn deque(v: Vec<MouseSample>) -> VecDeque<MouseSample> {
@@ -148,7 +151,11 @@ mod tests {
             "Expected near-zero entropy for a straight line, got {:.4}",
             r.entropy_norm
         );
-        assert!(r.risk_score < 0.5, "Straight line should be low risk, got {:.4}", r.risk_score);
+        assert!(
+            r.risk_score < 0.5,
+            "Straight line should be low risk, got {:.4}",
+            r.risk_score
+        );
     }
 
     #[test]
@@ -172,7 +179,11 @@ mod tests {
         let q: VecDeque<_> = (0..=steps)
             .map(|i| {
                 let a = 2.0 * std::f64::consts::PI * i as f64 / steps as f64;
-                sample(500.0 + 100.0 * a.cos(), 500.0 + 100.0 * a.sin(), i as u64 * 10)
+                sample(
+                    500.0 + 100.0 * a.cos(),
+                    500.0 + 100.0 * a.sin(),
+                    i as u64 * 10,
+                )
             })
             .collect();
         let r = compute_risk(&q, bins, 0.6, 0.4).unwrap();

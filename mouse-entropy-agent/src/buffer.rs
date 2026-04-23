@@ -64,12 +64,20 @@ mod tests {
         let mut buf = RollingBuffer::new(500);
         // t=0..499 → all within window when latest is 499
         for t in 0..500u64 {
-            buf.push(MouseSample { x: 0.0, y: 0.0, timestamp_ms: t });
+            buf.push(MouseSample {
+                x: 0.0,
+                y: 0.0,
+                timestamp_ms: t,
+            });
         }
         assert_eq!(buf.len(), 500);
 
         // Push t=1000 → cutoff=500 → t=0..499 all evicted
-        buf.push(MouseSample { x: 0.0, y: 0.0, timestamp_ms: 1000 });
+        buf.push(MouseSample {
+            x: 0.0,
+            y: 0.0,
+            timestamp_ms: 1000,
+        });
         // Only t=1000 remains
         assert_eq!(buf.len(), 1);
     }
@@ -78,7 +86,11 @@ mod tests {
     fn retains_samples_within_window() {
         let mut buf = RollingBuffer::new(500);
         for t in (0u64..=1000).step_by(10) {
-            buf.push(MouseSample { x: 0.0, y: 0.0, timestamp_ms: t });
+            buf.push(MouseSample {
+                x: 0.0,
+                y: 0.0,
+                timestamp_ms: t,
+            });
         }
         // Window is 500ms; latest is 1000 → cutoff 500 → keep t=500..=1000 (51 samples)
         assert_eq!(buf.len(), 51);

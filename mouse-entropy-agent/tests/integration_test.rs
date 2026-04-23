@@ -15,7 +15,11 @@ fn now_ms() -> u64 {
 }
 
 fn scorer() -> Scorer {
-    Scorer { medium: 0.3, high: 0.6, critical: 0.8 }
+    Scorer {
+        medium: 0.3,
+        high: 0.6,
+        critical: 0.8,
+    }
 }
 
 /// Push `count` samples along a circular path into a rolling buffer.
@@ -60,7 +64,10 @@ fn simulate_1000_circular_events_risk_in_range() {
     // Circular motion hits at least MEDIUM risk.
     let level = scorer().classify(result.risk_score);
     assert!(
-        matches!(level, RiskLevel::Medium | RiskLevel::High | RiskLevel::Critical),
+        matches!(
+            level,
+            RiskLevel::Medium | RiskLevel::High | RiskLevel::Critical
+        ),
         "expected MEDIUM or above, got {:?}",
         level
     );
@@ -84,7 +91,10 @@ fn simulate_1000_straight_line_events_low_risk() {
 
     let result = compute_risk(samples, 16, 0.6, 0.4).expect("compute_risk returned None");
 
-    assert!(result.entropy_norm < 0.3, "straight line entropy should be low");
+    assert!(
+        result.entropy_norm < 0.3,
+        "straight line entropy should be low"
+    );
     assert_eq!(
         scorer().classify(result.risk_score),
         RiskLevel::Low,

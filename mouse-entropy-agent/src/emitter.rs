@@ -171,9 +171,7 @@ pub async fn get_anomaly_explanation(
     api_key: &str,
     recent_windows: &[TelemetryEvent],
 ) -> Result<String> {
-    let client = Client::builder()
-        .timeout(Duration::from_secs(15))
-        .build()?;
+    let client = Client::builder().timeout(Duration::from_secs(15)).build()?;
 
     let telemetry_json = serde_json::to_string(recent_windows)?;
 

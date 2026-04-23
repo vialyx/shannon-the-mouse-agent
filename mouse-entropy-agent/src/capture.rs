@@ -41,9 +41,7 @@ fn print_platform_hint() {
     #[cfg(target_os = "macos")]
     {
         eprintln!("⚠  Mouse capture failed on macOS.");
-        eprintln!(
-            "   Please grant Accessibility permission to this application:"
-        );
+        eprintln!("   Please grant Accessibility permission to this application:");
         eprintln!(
             "   System Settings → Privacy & Security → Accessibility → enable your terminal."
         );
@@ -53,9 +51,7 @@ fn print_platform_hint() {
     {
         eprintln!("⚠  Mouse capture failed on Linux.");
         eprintln!("   Ensure a running X11 display is available ($DISPLAY is set).");
-        eprintln!(
-            "   On Wayland, XWayland must be active or rdev must find libinput."
-        );
+        eprintln!("   On Wayland, XWayland must be active or rdev must find libinput.");
     }
 
     #[cfg(target_os = "windows")]

@@ -164,6 +164,53 @@ cargo test --workspace
 
 ---
 
+## Benchmarking, memory footprint, and resource utilization
+
+### 1) Micro-benchmarks (hot path)
+
+The project includes a Criterion benchmark for `compute_risk()`:
+
+```bash
+cargo bench --bench entropy_bench
+```
+
+Benchmark source: [mouse-entropy-agent/benches/entropy_bench.rs](mouse-entropy-agent/benches/entropy_bench.rs).
+
+### 2) Runtime memory + CPU profiling on macOS
+
+Use the system `time` tool (`-l`) to capture RSS and context-switch metrics:
+
+```bash
+# benchmark workload
+/usr/bin/time -l cargo bench --bench entropy_bench -- --warm-up-time 0.5 --measurement-time 1 --sample-size 30
+
+# synthetic end-to-end path (buffer -> entropy -> scorer)
+/usr/bin/time -l cargo test --release --test integration_test
+```
+
+### 3) Current baseline (macOS, Apr 23 2026)
+
+- Criterion run (`compute_risk`):
+  - ~0.56 µs for 100-sample straight-line windows
+  - ~4.94 µs for 1,000-sample straight-line windows
+  - ~9.94 µs for 10,000-sample straight-line windows
+  - ~8.87 µs for 1,000-sample circular windows
+  - ~15.40 µs for 10,000-sample multi-direction windows
+- Resource profile of benchmark process:
+  - `maximum resident set size`: ~32.8 MB
+  - `peak memory footprint`: ~26.4 MB
+  - CPU time: ~29.33 s user / ~0.36 s sys (for the full Criterion sweep above)
+- Compiled integration test binary runtime memory:
+  - `maximum resident set size`: ~7.6 MB
+  - `peak memory footprint`: ~2.0 MB
+
+> Notes:
+> - `cargo`-prefixed commands include compiler process overhead.
+> - For steady-state runtime numbers, profile already-built binaries directly.
+> - Criterion measurements are machine-dependent; treat these as baselines, not fixed SLAs.
+
+---
+
 ## CI
 
 GitHub Actions runs a build-and-test matrix on

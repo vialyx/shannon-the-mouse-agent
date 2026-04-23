@@ -58,7 +58,11 @@ mod tests {
     use super::*;
 
     fn scorer() -> Scorer {
-        Scorer { medium: 0.3, high: 0.6, critical: 0.8 }
+        Scorer {
+            medium: 0.3,
+            high: 0.6,
+            critical: 0.8,
+        }
     }
 
     #[test]

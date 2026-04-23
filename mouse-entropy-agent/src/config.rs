@@ -123,9 +123,6 @@ impl Default for ThresholdConfig {
     }
 }
 
-
-
-
 impl AppConfig {
     /// Load configuration from `config.toml` (if present) and environment
     /// variables with the `MOUSE_AGENT__` prefix.
@@ -133,14 +130,12 @@ impl AppConfig {
         let mut builder = config::Config::builder();
 
         if Path::new("config.toml").exists() {
-            builder = builder.add_source(
-                config::File::new("config", config::FileFormat::Toml).required(false),
-            );
+            builder = builder
+                .add_source(config::File::new("config", config::FileFormat::Toml).required(false));
         }
 
-        builder = builder.add_source(
-            config::Environment::with_prefix("MOUSE_AGENT").separator("__"),
-        );
+        builder =
+            builder.add_source(config::Environment::with_prefix("MOUSE_AGENT").separator("__"));
 
         let cfg = builder.build()?;
         Ok(cfg.try_deserialize()?)

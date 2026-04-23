@@ -1,19 +1,22 @@
+use anyhow::Result;
+use crossbeam_channel::unbounded;
 use mouse_entropy_agent::{
     buffer::{MouseSample, RollingBuffer},
+    capture,
     config::AppConfig,
     emitter::{current_timestamp_ms, Emitter, TelemetryEvent},
     entropy, scorer,
-    capture,
 };
-use anyhow::Result;
-use crossbeam_channel::unbounded;
 use std::time::Duration;
 use uuid::Uuid;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let cfg = AppConfig::load().unwrap_or_else(|e| {
-        eprintln!("Warning: could not load config.toml ({}), using defaults", e);
+        eprintln!(
+            "Warning: could not load config.toml ({}), using defaults",
+            e
+        );
         AppConfig::default()
     });
 
