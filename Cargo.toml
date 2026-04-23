@@ -1,0 +1,3 @@
+[workspace]
+members = ["mouse-entropy-agent"]
+resolver = "2"
