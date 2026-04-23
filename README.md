@@ -183,6 +183,9 @@ cargo bench --bench entropy_bench -- --noplot --warm-up-time 0.5 --measurement-t
 python3 scripts/check_bench_thresholds.py
 ```
 
+Thresholds in the guard script are calibrated for GitHub-hosted shared runners
+(which are slower/noisier than most local machines) to avoid flaky failures.
+
 ### 2) Runtime memory + CPU profiling on macOS
 
 Use the system `time` tool (`-l`) to capture RSS and context-switch metrics:

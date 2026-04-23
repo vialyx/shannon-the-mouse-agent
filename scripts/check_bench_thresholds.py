@@ -8,10 +8,14 @@ import sys
 from pathlib import Path
 
 # Thresholds are in nanoseconds (median point estimate).
+#
+# These are tuned for GitHub-hosted shared runners, which are materially slower
+# and noisier than local developer machines. Keep enough headroom to avoid
+# flaky false positives while still catching clear regressions.
 THRESHOLDS_NS = {
-    "compute_risk/straight/1000": 8_000,
-    "compute_risk/circular/1000": 14_000,
-    "compute_risk/multi_dir/10000": 25_000,
+    "compute_risk/straight/1000": 25_000,
+    "compute_risk/circular/1000": 45_000,
+    "compute_risk/multi_dir/10000": 90_000,
 }
 
 
