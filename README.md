@@ -176,6 +176,13 @@ cargo bench --bench entropy_bench
 
 Benchmark source: [mouse-entropy-agent/benches/entropy_bench.rs](mouse-entropy-agent/benches/entropy_bench.rs).
 
+To run the same lightweight profile used in CI:
+
+```bash
+cargo bench --bench entropy_bench -- --noplot --warm-up-time 0.5 --measurement-time 1 --sample-size 30
+python3 scripts/check_bench_thresholds.py
+```
+
 ### 2) Runtime memory + CPU profiling on macOS
 
 Use the system `time` tool (`-l`) to capture RSS and context-switch metrics:
@@ -209,11 +216,28 @@ Use the system `time` tool (`-l`) to capture RSS and context-switch metrics:
 > - For steady-state runtime numbers, profile already-built binaries directly.
 > - Criterion measurements are machine-dependent; treat these as baselines, not fixed SLAs.
 
+### 4) Current optimization opportunities
+
+1. **Remove floating-point `atan2` in the hot path**
+  - Current direction binning uses angle conversion (`atan2` + degrees).
+  - A branch-based octant/sector mapper can avoid trig and reduce CPU time.
+2. **Incremental sliding-window stats**
+  - Today each tick recomputes all window metrics from scratch.
+  - Maintaining per-window accumulators (bin histogram + velocity moments) can reduce work from $O(n)$ per tick toward amortized $O(1)$ updates.
+3. **Window-size-aware buffer preallocation**
+  - `RollingBuffer` currently grows dynamically.
+  - Estimating expected samples/window and reserving capacity can reduce allocator churn under bursty input rates.
+
 ---
 
 ## CI
 
 GitHub Actions runs a build-and-test matrix on
 **ubuntu-latest**, **macos-latest**, and **windows-latest** on every push and
-pull-request to `main`.  See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+pull-request to `main`.
+
+CI also includes a **Linux performance guard** that runs Criterion benchmarks
+and fails if median latency thresholds regress.
+
+See [.github/workflows/ci.yml](.github/workflows/ci.yml).
 

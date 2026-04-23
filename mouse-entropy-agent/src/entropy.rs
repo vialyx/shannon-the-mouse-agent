@@ -23,13 +23,19 @@ pub fn compute_risk(
     alpha: f64,
     beta: f64,
 ) -> Option<EntropyResult> {
-    if samples.len() < 2 {
+    if samples.len() < 2 || bins == 0 {
         return None;
     }
 
     let count = samples.len();
-    let mut velocities: Vec<f64> = Vec::with_capacity(count - 1);
-    let mut angles: Vec<f64> = Vec::with_capacity(count - 1);
+    let mut bin_counts = vec![0usize; bins];
+
+    // Streaming velocity stats via Welford's algorithm.
+    let mut velocity_n: usize = 0;
+    let mut velocity_mean = 0.0f64;
+    let mut velocity_m2 = 0.0f64;
+
+    let bin_scale = bins as f64 / 360.0;
 
     let mut prev = samples.front()?;
     for curr in samples.iter().skip(1) {
@@ -39,27 +45,29 @@ pub fn compute_risk(
         let dt = (curr.timestamp_ms as f64 - prev.timestamp_ms as f64).max(1.0);
 
         let dist = (dx * dx + dy * dy).sqrt();
-        velocities.push(dist / dt);
+        let velocity = dist / dt;
+
+        velocity_n += 1;
+        let delta = velocity - velocity_mean;
+        velocity_mean += delta / velocity_n as f64;
+        let delta2 = velocity - velocity_mean;
+        velocity_m2 += delta * delta2;
 
         // atan2 returns [-π, π]; map to [0°, 360°).
         let mut angle_deg = dy.atan2(dx).to_degrees();
         if angle_deg < 0.0 {
             angle_deg += 360.0;
         }
-        angles.push(angle_deg);
+
+        // Quantise direction angles into `bins` equal-width buckets.
+        let bin = (angle_deg * bin_scale) as usize;
+        bin_counts[bin.min(bins - 1)] += 1;
 
         prev = curr;
     }
 
-    // Quantise direction angles into `bins` equal-width buckets.
-    let mut bin_counts = vec![0usize; bins];
-    for &angle in &angles {
-        let bin = ((angle / 360.0) * bins as f64).floor() as usize;
-        bin_counts[bin.min(bins - 1)] += 1;
-    }
-
     // Shannon entropy: H = -Σ p(b) · log₂(p(b))
-    let total = angles.len() as f64;
+    let total = velocity_n as f64;
     let entropy_raw: f64 = bin_counts
         .iter()
         .filter(|&&c| c > 0)
@@ -76,9 +84,12 @@ pub fn compute_risk(
         0.0
     };
 
-    // Velocity statistics.
-    let velocity_mean = velocities.iter().sum::<f64>() / velocities.len() as f64;
-    let velocity_jitter = std_dev(&velocities);
+    // Velocity population standard deviation.
+    let velocity_jitter = if velocity_n > 1 {
+        (velocity_m2 / velocity_n as f64).sqrt()
+    } else {
+        0.0
+    };
 
     // Normalise jitter against a practical ceiling (200 px/ms ≈ extremely fast).
     const MAX_JITTER: f64 = 200.0;
@@ -94,16 +105,6 @@ pub fn compute_risk(
         risk_score,
         sample_count: count,
     })
-}
-
-/// Population standard deviation.
-fn std_dev(values: &[f64]) -> f64 {
-    if values.len() < 2 {
-        return 0.0;
-    }
-    let mean = values.iter().sum::<f64>() / values.len() as f64;
-    let variance = values.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / values.len() as f64;
-    variance.sqrt()
 }
 
 #[cfg(test)]

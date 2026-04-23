@@ -53,3 +53,42 @@ jobs:
 
       - name: Run tests
         run: cargo test --workspace
+
+  perf-guard:
+    name: Performance guard (ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo registry and build artefacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            libxtst-dev \
+            libx11-dev \
+            libxcb1-dev \
+            libxfixes-dev \
+            pkg-config
+
+      - name: Run criterion benchmarks
+        run: cargo bench --bench entropy_bench -- --noplot --warm-up-time 0.5 --measurement-time 1 --sample-size 30
+
+      - name: Enforce performance thresholds
+        run: python3 scripts/check_bench_thresholds.py
